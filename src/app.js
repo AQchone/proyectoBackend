@@ -1,6 +1,6 @@
 import express from "express";
 import { engine } from "express-handlebars";
-import viewsRouter from "./routes/views.router.js";
+import router from "./routes/views.router";
 import { __dirname } from "./utils.js";
 import { Server } from "socket.io";
 const app = express();
@@ -14,7 +14,7 @@ app.engine("handlebars", engine());
 app.set("views", __dirname + "/views");
 app.set("view engine", "handlebars");
 
-app.use("/", viewsRouter);
+app.use("/", router);
 
 const PORT = 8080;
 
