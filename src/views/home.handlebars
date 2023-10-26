@@ -1,0 +1,10 @@
+<h2>Bienvenido {{first_name}} {{last_name}} </h2>
+<h4>Productos Disponibles</h4>
+{{#each products}}
+<div>
+
+    <h3>{{name}}</h3>
+    <p>{{price}}</p>
+    <p>{{stock}}</p>
+</div>
+{{/each}}
