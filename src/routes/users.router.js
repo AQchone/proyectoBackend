@@ -21,6 +21,16 @@ router.get("/:idUser", async (req, res) => {
   }
 });
 
+router.get("/:email", async (req, res) => {
+  const { email } = req.params;
+  try {
+    const user = await usersManager.findByEmail(email);
+    res.status(200).json({ message: "Usuario", user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete("/:idUser", async (req, res) => {
   const { idUser } = req.params;
   try {
