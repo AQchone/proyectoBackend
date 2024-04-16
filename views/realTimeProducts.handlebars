@@ -14,7 +14,7 @@
 <script>
   const socket = io();
 
-  // Aquí puedes manejar los eventos de WebSocket para actualizar la lista de productos
+
   socket.on('productAdded', (product) => {
     const li = document.createElement('li');
     li.textContent = `${product.title} - ${product.price}`;
