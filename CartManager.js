@@ -49,6 +49,7 @@ class CartManager {
       const product = cart.products.find(
         (p) => p.product === parseInt(productId)
       );
+
       if (product) {
         product.quantity++;
       } else {

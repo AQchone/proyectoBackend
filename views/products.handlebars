@@ -1,0 +1,30 @@
+<h1>Lista de productos</h1>
+<ul>
+  {{#each products}}
+  <li>
+    <h3>{{this.title}}</h3>
+    <p>{{this.description}}</p>
+    <p>Precio: ${{this.price}}</p>
+    <p>Categoría: {{this.category}}</p>
+    <p>Disponibilidad: {{this.stock}}</p>
+    <button data-product-id="{{this._id}}">Agregar al carrito</button>
+  </li>
+  {{/each}}
+</ul>
+
+<script>
+  document.querySelectorAll("button[data-product-id]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const productId = button.dataset.productId;
+      try {
+        const response = await fetch(`/api/carts/${localStorage.getItem("cartId")}/product/${productId}`, {
+          method: "POST",
+        });
+        const data = await response.json();
+        console.log(data);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  });
+</script>
