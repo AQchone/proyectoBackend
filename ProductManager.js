@@ -22,7 +22,7 @@ class ProductManager {
 
   getProducts() {
     try {
-      const data = fs.promises.readFile(this.path, "utf-8");
+      const data = fs.readFileSync(this.path, "utf-8");
       return JSON.parse(data);
     } catch (error) {
       if (error.code === "ENOENT") return [];
@@ -30,10 +30,10 @@ class ProductManager {
     }
   }
 
-  getProductById(id) {
+  getProduct(id) {
     try {
       const products = this.getProducts();
-      return products.find((product) => product.id === id);
+      return products.find((product) => product.id === parseInt(id));
     } catch (error) {
       throw new Error("Error getting product by id: " + error.message);
     }
@@ -42,7 +42,9 @@ class ProductManager {
   updateProduct(id, updatedFields) {
     try {
       let products = this.getProducts();
-      const index = products.findIndex((product) => product.id === id);
+      const index = products.findIndex(
+        (product) => product.id === parseInt(id)
+      );
       if (index === -1) {
         throw new Error("Product not found");
       }
@@ -57,7 +59,7 @@ class ProductManager {
   deleteProduct(id) {
     try {
       let products = this.getProducts();
-      products = products.filter((product) => product.id !== id);
+      products = products.filter((product) => product.id !== parseInt(id));
       fs.promises.writeFile(this.path, JSON.stringify(products));
     } catch (error) {
       throw new Error("Error deleting product: " + error.message);

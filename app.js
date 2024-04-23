@@ -4,6 +4,8 @@ const CartManager = require("./CartManager");
 const app = express();
 const handlebars = require("express-handlebars");
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const productManager = new ProductManager("products.json");
 const cartManager = new CartManager("carts.json");
 const productRouter = express.Router();

@@ -22,7 +22,7 @@ class CartManager {
 
   getCarts() {
     try {
-      const data = fs.promises.readFile(this.path, "utf-8");
+      const data = fs.readFileSync(this.path, "utf-8");
       return JSON.parse(data);
     } catch (error) {
       if (error.code === "ENOENT") return [];
