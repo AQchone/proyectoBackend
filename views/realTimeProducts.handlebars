@@ -10,37 +10,35 @@
 </form>
 <ul id="productList"></ul>
 
-<script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
 
-
-  socket.on('productAdded', (product) => {
-    const li = document.createElement('li');
+  socket.on("productAdded", (product) => {
+    const li = document.createElement("li");
     li.textContent = `${product.title} - ${product.price}`;
     productList.appendChild(li);
   });
 
-  socket.on('productRemoved', (productId) => {
+  socket.on("productRemoved", (productId) => {
     const li = document.querySelector(`li:nth-child(${productId})`);
     if (li) {
       productList.removeChild(li);
     }
   });
 
-  addProductForm.addEventListener('submit', (e) => {
+  addProductForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const title = productTitle.value;
     const price = parseInt(productPrice.value);
-    socket.emit('addProduct', { title, price });
-    productTitle.value = '';
-    productPrice.value = '';
+    socket.emit("addProduct", { title, price });
+    productTitle.value = "";
+    productPrice.value = "";
   });
 
-  deleteProductForm.addEventListener('submit', (e) => {
+  deleteProductForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const productId = parseInt(productId.value);
-    socket.emit('deleteProduct', productId);
-    productId.value = '';
+    socket.emit("deleteProduct", productId);
+    productId.value = "";
   });
 </script>
