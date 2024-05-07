@@ -1,12 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const passport = require("./auth");
-const User = require("./models/user.model");
+const passport = require("../auth");
+const User = require("../models/user.model");
 
 router.post("/register", async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.create({ email, password });
+    const { first_name, last_name, email, age, password } = req.body;
+    const user = await User.create({
+      first_name,
+      last_name,
+      email,
+      age,
+      password,
+    });
     res.status(201).json({ status: "success", payload: user });
   } catch (err) {
     res.status(400).json({ status: "error", message: err.message });
@@ -32,6 +38,14 @@ router.get("/login-failure", (req, res) => {
 router.get("/logout", (req, res) => {
   req.logout();
   res.json({ status: "success", message: "Sesión cerrada" });
+});
+
+router.get("/current", (req, res) => {
+  if (req.user) {
+    res.json({ status: "success", payload: req.user });
+  } else {
+    res.json({ status: "error", message: "No hay sesión activa" });
+  }
 });
 
 module.exports = router;

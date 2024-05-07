@@ -4,6 +4,7 @@ const handlebars = require("express-handlebars");
 const path = require("path");
 const session = require("express-session");
 const passport = require("./auth");
+const Product = require("./models/product.model");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -34,18 +35,19 @@ const productsRoutes = require("./routes/products.route");
 const cartsRoutes = require("./routes/carts.route");
 const viewsRoutes = require("./routes/views.route");
 const authRoutes = require("./routes/auth.route");
+const sessionsRoutes = require("./routes/sessions.route");
 
 app.use("/api/products", productsRoutes);
 app.use("/api/carts", cartsRoutes);
 app.use("/", viewsRoutes);
 app.use("/auth", authRoutes);
+app.use("/api/sessions", sessionsRoutes);
 
 const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
 const io = require("socket.io")(server);
-const Product = require("./models/product.model");
 
 io.on("connection", (socket) => {
   console.log("A user connected");
