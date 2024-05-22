@@ -1,4 +1,4 @@
-const Product = require("../models/product.model");
+const productDao = require("../daos/mongoose.dao");
 
 exports.getProducts = async (req, res) => {
   try {
@@ -14,12 +14,13 @@ exports.getProducts = async (req, res) => {
       ];
     }
 
-    const totalDocs = await Product.countDocuments(filters);
+    const totalDocs = await productDao.getProducts().countDocuments(filters);
     const totalPages = Math.ceil(totalDocs / limit);
 
     const sortOptions = sort ? { price: sort === "asc" ? 1 : -1 } : undefined;
 
-    const products = await Product.find(filters)
+    const products = await productDao
+      .getProducts(filters)
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
@@ -52,12 +53,7 @@ exports.getProducts = async (req, res) => {
 exports.getProductById = async (req, res) => {
   try {
     const { pid } = req.params;
-    const product = await Product.findById(pid);
-    if (!product) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "Product not found" });
-    }
+    const product = await productDao.getProductById(pid);
     res.json({ status: "success", payload: product });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
@@ -66,7 +62,7 @@ exports.getProductById = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
   try {
-    const newProduct = await Product.create(req.body);
+    const newProduct = await productDao.createProduct(req.body);
     res.status(201).json({ status: "success", payload: newProduct });
   } catch (error) {
     res.status(400).json({ status: "error", message: error.message });
@@ -76,14 +72,7 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { pid } = req.params;
-    const updatedProduct = await Product.findByIdAndUpdate(pid, req.body, {
-      new: true,
-    });
-    if (!updatedProduct) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "Product not found" });
-    }
+    const updatedProduct = await productDao.updateProduct(pid, req.body);
     res.json({ status: "success", payload: updatedProduct });
   } catch (error) {
     res.status(400).json({ status: "error", message: error.message });
@@ -93,12 +82,7 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const { pid } = req.params;
-    const deletedProduct = await Product.findByIdAndDelete(pid);
-    if (!deletedProduct) {
-      return res
-        .status(404)
-        .json({ status: "error", message: "Product not found" });
-    }
+    const deletedProduct = await productDao.deleteProduct(pid);
     res.json({ status: "success", message: "Product deleted" });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });
@@ -107,7 +91,7 @@ exports.deleteProduct = async (req, res) => {
 
 exports.getProductsView = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await productDao.getProducts();
     res.render("products", { products });
   } catch (error) {
     res.status(500).json({ status: "error", message: error.message });

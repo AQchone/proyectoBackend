@@ -5,12 +5,12 @@ const path = require("path");
 const session = require("express-session");
 const passport = require("./auth");
 const Product = require("./models/product.model");
-require("dotenv").config();
+const config = require("./config");
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = config.port || 8080;
 
-mongoose.connect(process.env.MONGO_URI, {
+mongoose.connect(config.mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
