@@ -6,6 +6,8 @@ const session = require("express-session");
 const passport = require("./auth");
 const Product = require("./models/product.model");
 const config = require("./config");
+const session = require("express-session");
+const secretKey = require("./scrt");
 
 const app = express();
 const PORT = config.port || 8080;
@@ -25,6 +27,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
   session({
+    secret: secretKey,
     resave: false,
     saveUninitialized: false,
   })
