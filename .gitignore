@@ -3,6 +3,3 @@ node_modules/
 
 # Archivos de bloqueo de dependencias
 package-lock.json
-
-# Archivos de configuración de entorno local
-.env
