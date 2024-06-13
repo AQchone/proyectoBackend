@@ -1,5 +1,4 @@
-# Dependencias
-node_modules/
-
-# Archivos de bloqueo de dependencias
+# Archivos de npm
 package-lock.json
+
+node_modules
