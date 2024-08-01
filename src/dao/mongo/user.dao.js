@@ -30,6 +30,15 @@ class UserDAO {
       return null;
     }
   }
+  async updateUser(id, userData) {
+    try {
+      const result = await UserModel.updateOne({ _id: id }, { $set: userData });
+      return result;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
 }
 
 module.exports = { UserDAO };
