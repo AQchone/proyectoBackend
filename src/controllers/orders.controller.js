@@ -85,7 +85,20 @@ module.exports = {
 
   resolveOrder: async (req, res) => {
     try {
-      res.sendSuccess({ message: "Order resolved successfully" });
+      const id = req.params.id;
+      const { status } = req.body;
+
+      if (!status) {
+        return res.sendError("Status is required", 400);
+      }
+
+      const result = await orderDAO.resolveOrder(id, status);
+
+      if (!result) {
+        return res.sendError("Failed to resolve order", 500);
+      }
+
+      res.sendSuccess({ message: "Order resolved successfully", status });
     } catch (error) {
       console.error("Error in resolveOrder:", error);
       res.sendError("An unexpected error occurred", 500);
