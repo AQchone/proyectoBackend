@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const compression = require("express-compression");
 const { mongoUri, dbName } = require("./config");
 const { configureCustomResponses } = require("./controllers/utils");
 const createBusinessRouter = require("./routes/business.router");
@@ -8,7 +9,7 @@ const createOrdersRouter = require("./routes/orders.router");
 const createUsersRouter = require("./routes/users.router");
 
 const app = express();
-
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
