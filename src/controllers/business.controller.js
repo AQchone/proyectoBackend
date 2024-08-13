@@ -1,5 +1,11 @@
 const { Business } = require("../dao");
+const {
+  SaveBusinessResponse,
+} = require("../dto/responses/SaveBusinessResponse");
+const { BusinessService } = require("../services/business.service");
+
 const businessDAO = new Business();
+const businessService = new BusinessService(businessDAO);
 
 module.exports = {
   getBusiness: async (_, res) => {
@@ -8,7 +14,7 @@ module.exports = {
       if (!businesses || businesses.length === 0) {
         return res.sendError("No businesses found", 404);
       }
-      res.sendSuccess(businesses);
+      res.sendSuccess(businesses.map((b) => new SaveBusinessResponse(b)));
     } catch (error) {
       console.error("Error in getBusiness:", error);
       res.sendError("An unexpected error occurred", 500);
@@ -22,7 +28,7 @@ module.exports = {
       if (!business) {
         return res.sendError("Business not found", 404);
       }
-      res.sendSuccess(business);
+      res.sendSuccess(new SaveBusinessResponse(business));
     } catch (error) {
       console.error("Error in getBusinessById:", error);
       res.sendError("An unexpected error occurred", 500);
@@ -32,17 +38,11 @@ module.exports = {
   createBusiness: async (req, res) => {
     try {
       const businessData = req.body;
-      if (!businessData || Object.keys(businessData).length === 0) {
-        return res.sendError("Invalid business data", 400);
-      }
-      const business = await businessDAO.saveBusiness(businessData);
-      if (!business) {
-        return res.sendError("Failed to create business", 500);
-      }
-      res.sendSuccess(business);
+      const business = await businessService.createBusiness(businessData);
+      res.sendSuccess(new SaveBusinessResponse(business));
     } catch (error) {
       console.error("Error in createBusiness:", error);
-      res.sendError("An unexpected error occurred", 500);
+      res.sendError(error.message || "An unexpected error occurred", 500);
     }
   },
 
@@ -50,22 +50,11 @@ module.exports = {
     try {
       const id = req.params.id;
       const product = req.body;
-
-      if (!product || Object.keys(product).length === 0) {
-        return res.sendError("Invalid product data", 400);
-      }
-
-      const result = await businessDAO.updateBusiness(id, {
-        $push: { products: product },
-      });
-
-      if (!result) {
-        return res.sendError("Failed to add product", 500);
-      }
+      const result = await businessService.addProduct(id, product);
       res.sendSuccess({ product, message: "Product added successfully" });
     } catch (error) {
       console.error("Error in addProduct:", error);
-      res.sendError("An unexpected error occurred", 500);
+      res.sendError(error.message || "An unexpected error occurred", 500);
     }
   },
 };

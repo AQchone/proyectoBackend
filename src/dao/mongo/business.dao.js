@@ -14,7 +14,7 @@ class BusinessDAO {
   async getBusinessById(id) {
     try {
       const business = await BusinessModel.findById(id);
-      return business?.toObject() ?? false;
+      return business?.toObject() ?? null;
     } catch (err) {
       console.error(err);
       return null;
@@ -31,13 +31,26 @@ class BusinessDAO {
     }
   }
 
-  async updateBusiness(id, business) {
+  async updateBusiness(id, update) {
     try {
-      const result = await BusinessModel.updateOne(
-        { _id: id },
-        { $set: business }
+      const result = await BusinessModel.findByIdAndUpdate(id, update, {
+        new: true,
+      });
+      return result?.toObject() ?? null;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async addProduct(id, product) {
+    try {
+      const result = await BusinessModel.findByIdAndUpdate(
+        id,
+        { $push: { products: product } },
+        { new: true }
       );
-      return result;
+      return result?.toObject() ?? null;
     } catch (err) {
       console.error(err);
       return null;

@@ -1,5 +1,8 @@
 const { User } = require("../dao");
+const { SaveUserResponse } = require("../dto/responses/SaveUserResponse");
 const userDAO = new User();
+const { UsersService } = require("../services/users.service");
+const service = new UsersService(userDAO);
 
 module.exports = {
   getUsers: async (_, res) => {
@@ -32,14 +35,14 @@ module.exports = {
   saveUser: async (req, res) => {
     try {
       const userData = req.body;
+      const user = await service.createUser(userData);
       if (!userData || Object.keys(userData).length === 0) {
         return res.sendError("Invalid user data", 400);
       }
-      const user = await userDAO.saveUser(userData);
       if (!user) {
         return res.sendError("Failed to save user", 500);
       }
-      res.sendSuccess(user);
+      res.sendSuccess(new SaveUserResponse(user));
     } catch (error) {
       console.error("Error in saveUser:", error);
       res.sendError("An unexpected error occurred", 500);

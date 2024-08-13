@@ -3,8 +3,10 @@ const OrderModel = require("./models/order.model");
 class OrderDAO {
   async getOrders() {
     try {
-      const orders = await OrderModel.find();
-      return orders.map((u) => u.toObject());
+      const orders = await OrderModel.find()
+        .populate("business")
+        .populate("user");
+      return orders.map((o) => o.toObject());
     } catch (err) {
       console.error(err);
       return null;
@@ -13,8 +15,10 @@ class OrderDAO {
 
   async getOrderById(id) {
     try {
-      const order = await OrderModel.findById(id);
-      return order?.toObject() ?? false;
+      const order = await OrderModel.findById(id)
+        .populate("business")
+        .populate("user");
+      return order?.toObject() ?? null;
     } catch (err) {
       console.error(err);
       return null;
@@ -33,11 +37,12 @@ class OrderDAO {
 
   async resolveOrder(id, status) {
     try {
-      const result = await OrderModel.updateOne(
-        { _id: id },
-        { $set: { status } }
+      const result = await OrderModel.findByIdAndUpdate(
+        id,
+        { status },
+        { new: true }
       );
-      return result;
+      return result?.toObject() ?? null;
     } catch (err) {
       console.error(err);
       return null;

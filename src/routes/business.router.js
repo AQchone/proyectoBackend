@@ -12,7 +12,7 @@ module.exports = () => {
   router.get("/", getBusiness);
   router.get("/:id", getBusinessById);
   router.post("/", createBusiness);
-  router.get("/:id/products", addProduct);
+  router.post("/:id/products", addProduct);
 
   return router;
 };

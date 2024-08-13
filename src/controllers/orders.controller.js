@@ -1,8 +1,11 @@
 const { Order, User, Business } = require("../dao");
+const { SaveOrderResponse } = require("../dto/responses/SaveOrderResponse");
+const { OrdersService } = require("../services/orders.service");
 
 const orderDAO = new Order();
 const userDAO = new User();
 const businessDAO = new Business();
+const ordersService = new OrdersService(orderDAO, userDAO, businessDAO);
 
 module.exports = {
   getOrders: async (_, res) => {
@@ -11,7 +14,7 @@ module.exports = {
       if (!orders) {
         return res.sendError("Failed to retrieve orders");
       }
-      res.sendSuccess(orders);
+      res.sendSuccess(orders.map((o) => new SaveOrderResponse(o)));
     } catch (error) {
       console.error("Error in getOrders:", error);
       res.sendError("An unexpected error occurred", 500);
@@ -25,7 +28,7 @@ module.exports = {
       if (!order) {
         return res.sendError("Order not found", 404);
       }
-      res.sendSuccess(order);
+      res.sendSuccess(new SaveOrderResponse(order));
     } catch (error) {
       console.error("Error in getOrderById:", error);
       res.sendError("An unexpected error occurred", 500);
@@ -34,49 +37,12 @@ module.exports = {
 
   createOrder: async (req, res) => {
     try {
-      const { user, business, products } = req.body;
-      const userObject = await userDAO.getUserById(user);
-      const businessObject = await businessDAO.getBusinessById(business);
-
-      if (!businessObject) {
-        return res.sendError("Business not found", 404);
-      }
-
-      if (!businessObject.products || !Array.isArray(businessObject.products)) {
-        return res.sendError("Invalid business data", 400);
-      }
-
-      const productsInBusiness = businessObject.products.filter((p) =>
-        products.includes(p.id)
-      );
-
-      if (productsInBusiness.length === 0) {
-        return res.sendError("No valid products found for this business", 400);
-      }
-
-      const totalPrice = productsInBusiness.reduce(
-        (acc, p) => acc + p.price,
-        0
-      );
-
-      const order = await orderDAO.createOrder({
-        number: Date.now(),
-        totalPrice,
-        products: productsInBusiness,
-        status: "pending",
-        business,
-        user,
-      });
-
+      const orderData = req.body;
+      const order = await ordersService.createOrder(orderData);
       if (!order) {
         return res.sendError("Failed to create order");
       }
-
-      const userOrders = userObject.orders || [];
-      userOrders.push(order._id);
-      await userDAO.updateUser(user, { orders: userOrders });
-
-      return res.sendSuccess(order);
+      return res.sendSuccess(new SaveOrderResponse(order));
     } catch (error) {
       console.error("Error in createOrder:", error);
       return res.sendError("An unexpected error occurred", 500);
@@ -87,17 +53,10 @@ module.exports = {
     try {
       const id = req.params.id;
       const { status } = req.body;
-
-      if (!status) {
-        return res.sendError("Status is required", 400);
-      }
-
-      const result = await orderDAO.resolveOrder(id, status);
-
+      const result = await ordersService.resolveOrder(id, status);
       if (!result) {
         return res.sendError("Failed to resolve order", 500);
       }
-
       res.sendSuccess({ message: "Order resolved successfully", status });
     } catch (error) {
       console.error("Error in resolveOrder:", error);
