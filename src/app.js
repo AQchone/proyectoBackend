@@ -7,18 +7,19 @@ const { configureCustomResponses } = require("./controllers/utils");
 const createBusinessRouter = require("./routes/business.router");
 const createOrdersRouter = require("./routes/orders.router");
 const createUsersRouter = require("./routes/users.router");
-
+const { useLogger, logger } = require("./utils/logger");
 const app = express();
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(configureCustomResponses);
+app.use(useLogger);
 
 const main = async () => {
   try {
     await mongoose.connect(mongoUri, { dbName });
-    console.log("Connected to MongoDB");
+    logger.info("Connected to MongoDB");
 
     const routers = [
       { path: "/api/users", createRouter: createUsersRouter },
@@ -33,10 +34,10 @@ const main = async () => {
     const port = process.env.PORT || 8080;
 
     app.listen(port, () => {
-      console.log(`Server listening on ${port}`);
+      logger.info(`Server listening on ${port}`);
     });
   } catch (error) {
-    console.error("Failed to connect to MongoDB", error);
+    logger.error("Failed to connect to MongoDB", error);
     process.exit(1);
   }
 };
