@@ -1,7 +1,7 @@
-require('dotenv').config();
+require("dotenv").config();
 
 module.exports = {
-    secret: process.env.SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
-}
+  secret: process.env.SESSION_SECRET,
+  resave: true,
+  saveUninitialized: true,
+};
