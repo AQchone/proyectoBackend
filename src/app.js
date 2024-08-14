@@ -1,114 +1,88 @@
-const cluster = require("cluster");
-const os = require("os");
 const express = require("express");
+const handlebars = require("express-handlebars");
 const mongoose = require("mongoose");
-const cors = require("cors");
-const compression = require("express-compression");
-const { mongoUri, dbName } = require("./config");
-const { configureCustomResponses } = require("./controllers/utils");
-const createBusinessRouter = require("./routes/business.router");
-const createOrdersRouter = require("./routes/orders.router");
-const createUsersRouter = require("./routes/users.router");
-const { useLogger, logger } = require("./utils/logger");
-const { exec } = require("child_process");
+const passport = require("passport");
+const cookieParser = require("cookie-parser");
+const initializeStrategy = require("./config/passport.config");
+const { dbName, mongoUrl } = require("./dbconfig");
+const sessionMiddleware = require("./session/mongoStorage");
+const {
+  productsRouter,
+  productsViewsRouter,
+  cartRouter,
+  cartViewsRouter,
+  createProductRouter,
+  sessionRouter,
+  sessionViewsRouter,
+  loggerTestRouter,
+  mockingProductRouter,
+} = require("./routes");
+const { useLogger } = require("./middlewares/logger.middleware");
+const helmet = require("helmet");
+const swaggerJSDoc = require("swagger-jsdoc");
+const { serve, setup } = require("swagger-ui-express");
+const methodOverride = require("method-override");
 
-const numCPUs = os.cpus().length;
+const app = express();
 
-function countNodeProcesses() {
-  exec(
-    'tasklist /fi "imagename eq node.exe" /fo csv /nh',
-    (error, stdout, stderr) => {
-      if (error) {
-        logger.error(`Error al ejecutar el comando: ${error}`);
-        return;
-      }
-      const processCount = stdout.trim().split("\n").length;
-      logger.info(`Número de procesos node.exe: ${processCount}`);
-    }
-  );
-}
+// configurar handlebars
+app.engine("handlebars", handlebars.engine());
+app.set("views", `${__dirname}/views`);
+app.set("view engine", "handlebars");
 
-if (cluster.isMaster) {
-  logger.info(`Master ${process.pid} is running`);
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(`${__dirname}/../public`));
 
-  const workers = new Set();
+app.use(methodOverride("_method"));
 
-  function forkWorker() {
-    const worker = cluster.fork();
-    workers.add(worker);
-    return worker;
-  }
+app.use(helmet());
+app.use(sessionMiddleware);
+initializeStrategy();
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(cookieParser());
+app.use(useLogger);
 
-  for (let i = 0; i < numCPUs; i++) {
-    forkWorker();
-  }
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.1",
+    info: {
+      title: "Ecommerce Coderhouse",
+      description:
+        "API pensada para realizar todas las tareas requeridas por un ecommerce",
+    },
+  },
+  apis: [`${__dirname}/docs/**/*.yaml`],
+};
 
-  cluster.on("exit", (worker, code, signal) => {
-    logger.warn(
-      `Worker ${worker.process.pid} died with code ${code} and signal ${signal}`
-    );
-    workers.delete(worker);
+const specs = swaggerJSDoc(swaggerOptions);
+app.use("/apidocs", serve, setup(specs));
 
-    const newWorker = forkWorker();
-    logger.info(`New worker ${newWorker.process.pid} started`);
-  });
+app.use("/api/products", productsRouter);
+app.use("/products", productsViewsRouter);
+app.use("/api/cart", cartRouter);
+app.use("/cart", cartViewsRouter);
+app.use("/createProduct", createProductRouter);
+app.use("/api/users", sessionRouter);
+app.use("/users", sessionViewsRouter);
+app.use("/mockingproducts", mockingProductRouter);
+app.use("/loggertest", loggerTestRouter);
 
-  process.on("uncaughtException", (error) => {
-    logger.error("Uncaught Exception in master process:", error);
-  });
+module.exports = app;
 
-  process.on("unhandledRejection", (reason, promise) => {
-    logger.error("Unhandled Rejection in master process:", reason);
-  });
-
-  setInterval(() => {
-    logger.info(`Active workers: ${workers.size}`);
-    countNodeProcesses();
-  }, 60000);
-} else {
-  const app = express();
-  app.use(compression());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(cors());
-  app.use(configureCustomResponses);
-  app.use(useLogger);
-
+if (require.main === module) {
   const main = async () => {
-    try {
-      await mongoose.connect(mongoUri, { dbName });
-      logger.info(`Worker ${process.pid} connected to MongoDB`);
+    await mongoose.connect(mongoUrl, { dbName });
 
-      const routers = [
-        { path: "/api/users", createRouter: createUsersRouter },
-        { path: "/api/orders", createRouter: createOrdersRouter },
-        { path: "/api/business", createRouter: createBusinessRouter },
-      ];
+    const PORT = process.env.PORT || 8080;
 
-      for (const { path, createRouter } of routers) {
-        app.use(path, await createRouter());
-      }
-
-      const port = process.env.PORT || 8080;
-
-      app.listen(port, () => {
-        logger.info(`Worker ${process.pid} listening on ${port}`);
-      });
-    } catch (error) {
-      logger.error(`Worker ${process.pid} failed to connect to MongoDB`, error);
-      process.exit(1);
-    }
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(
+        `\nServidor cargado! \nhttp://localhost:${PORT}/users\n\nDocumentación ↓\nhttp://localhost:${PORT}/apidocs`
+      );
+    });
   };
 
   main();
-
-  process.on("uncaughtException", (error) => {
-    logger.error(`Uncaught Exception in worker ${process.pid}:`, error);
-    process.exit(1);
-  });
-
-  process.on("unhandledRejection", (reason, promise) => {
-    logger.error(`Unhandled Rejection in worker ${process.pid}:`, reason);
-    process.exit(1);
-  });
 }

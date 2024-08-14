@@ -1,81 +1,50 @@
-const winston = require("winston");
-const path = require("path");
+require('dotenv').config();
+const winston = require('winston');
 
-const levels = {
-  fatal: 0,
-  error: 1,
-  warning: 2,
-  info: 3,
-  http: 4,
-  debug: 5,
+const customLevelsOptions = {
+    levels: {
+        fatal: 0,
+        error: 1,
+        warning: 2,
+        info: 3,
+        http: 4,
+        debug: 5
+    }
 };
 
-const colors = {
-  fatal: "red",
-  error: "red",
-  warning: "yellow",
-  info: "green",
-  http: "magenta",
-  debug: "blue",
-};
-
-winston.addColors(colors);
-
-const format = winston.format.combine(
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss:ms" }),
-  winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`
-  )
-);
-
-const transports = [
-  new winston.transports.Console(),
-  new winston.transports.File({
-    filename: path.join(__dirname, "..", "logs", "errors.log"),
-    level: "error",
-  }),
-];
+const logFormat = winston.format.printf(({ level, message, timestamp }) => {
+    return `${timestamp} / Level: [${level.toUpperCase()}] - Message: ${message}`;
+});
 
 const devLogger = winston.createLogger({
-  levels,
-  format,
-  transports,
+    level: 'debug',
+    levels: customLevelsOptions.levels,
+    format: winston.format.combine(
+        winston.format.timestamp({ format: 'DD-MM-YYYY HH:mm:ss' }),
+        logFormat
+    ),
+    transports: [
+        new winston.transports.Console()
+    ]
 });
 
 const prodLogger = winston.createLogger({
-  levels,
-  format,
-  transports: [
-    new winston.transports.Console({ level: "info" }),
-    new winston.transports.File({
-      filename: path.join(__dirname, "..", "logs", "errors.log"),
-      level: "error",
-    }),
-  ],
+    levels: customLevelsOptions.levels,
+    format: winston.format.combine(
+        winston.format.timestamp({ format: 'DD-MM-YYYY HH:mm:ss' }),
+        logFormat
+    ),
+    transports: [
+        new winston.transports.Console({ level: 'info' }),
+        new winston.transports.File({ filename: './errors.log', level: 'error' })
+    ]
 });
 
-const logger = process.env.NODE_ENV === "production" ? prodLogger : devLogger;
+const logger = process.env.LOGGER_ENV === 'production' ? prodLogger : devLogger;
+if (process.env.LOGGER_ENV === 'production') {
+    console.log('Cargando el proyecto en modo de producción');
+} else {
+    console.log('Cargando el proyecto en modo de desarrollo');
+}
 
-const loggerTest = winston.createLogger({
-  levels,
-  format,
-  transports: [
-    new winston.transports.Console({ level: "debug" }),
-    new winston.transports.File({
-      filename: path.join(__dirname, "..", "logs", "test.log"),
-      level: "debug",
-    }),
-  ],
-});
-
-/**
- * @type {import("express").RequestHandler}
- */
-const useLogger = (req, res, next) => {
-  req.logger = logger;
-  req.logger.http(`Request to endpoint: ${req.method} ${req.url}`);
-  next();
-};
-
-module.exports = { useLogger, logger, loggerTest };
+module.exports = { logger };
