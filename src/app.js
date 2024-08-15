@@ -25,7 +25,6 @@ const methodOverride = require("method-override");
 
 const app = express();
 
-// configurar handlebars
 app.engine("handlebars", handlebars.engine());
 app.set("views", `${__dirname}/views`);
 app.set("view engine", "handlebars");
