@@ -53,9 +53,8 @@ const profileStorage = multer.diskStorage({
   filename: function (req, file, cb) {
     const userId = req.user.id;
 
-    // Genera el nuevo nombre del archivo basado en el campo y el userId
-    const fileExtension = path.extname(file.originalname); // Obtén la extensión del archivo
-    const baseName = path.basename(file.originalname, fileExtension); // Obtén el nombre base sin extensión
+    const fileExtension = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, fileExtension);
     const newFileName = `${file.fieldname}-${userId}-${baseName}${fileExtension}`;
 
     cb(null, newFileName);

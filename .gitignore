@@ -1,4 +1,6 @@
-# Archivos de npm
-package-lock.json
-
-node_modules
+node_modules/
+.env
+.dockerignore
+Dockerfile
+docer-compose.yml
+kubeusers.yaml

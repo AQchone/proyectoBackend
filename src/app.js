@@ -58,6 +58,7 @@ const swaggerOptions = {
 const specs = swaggerJSDoc(swaggerOptions);
 app.use("/apidocs", serve, setup(specs));
 
+// ENDPOINTS
 app.use("/api/products", productsRouter);
 app.use("/products", productsViewsRouter);
 app.use("/api/cart", cartRouter);

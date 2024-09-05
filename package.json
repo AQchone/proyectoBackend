@@ -1,12 +1,14 @@
 {
-  "name": "proyectobackend",
+  "name": "backend_preentrega1",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
+    "test": "npx mocha test --recursive",
     "start": "node src/app",
     "dev": "nodemon src/app"
   },
+  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
